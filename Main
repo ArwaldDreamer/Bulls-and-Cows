@@ -1,0 +1,147 @@
+package bullscows;
+
+import java.util.InputMismatchException;
+import java.util.Random;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(System.in);
+        int codeLength = 0;
+        int numSymbols = 0;
+        char[] posChars;
+        System.out.println("Please, enter the secret code's length:");
+        try {
+            codeLength = scan.nextInt();
+        }catch (Exception e) {
+            System.out.println("Error: Wrong input.");
+        }
+        System.out.println("Input the number of possible symbols in the code:");
+        try {
+            numSymbols = scan.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Error: Wrong input.");
+        }
+
+        posChars = new char[numSymbols];
+        for (int i = 0; i < numSymbols; i++) {
+            if (i < 10) {
+                posChars[i] = (char) (48 + i);
+            }
+            if (i >= 10) {
+                posChars[i] = (char) (87 + i);
+            }
+        }
+        guessPlay(genCode(codeLength, numSymbols, posChars),posChars);
+
+    }
+
+    public static String genCode(int codeLength, int numSymbols, char[] posChars) {
+
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        if (codeLength <= numSymbols) {
+            for (int i = 0; i < codeLength;) {
+                int randomNumber = random.nextInt(numSymbols);
+                char c = posChars[randomNumber];
+                if (sb.indexOf(Character.toString(c)) == -1) {
+                    sb.append(c);
+                    i++;
+                }
+                if (sb.length() == codeLength) {
+                    System.out.print("The secret is prepared: ");
+                    for (int j = 0; j < codeLength; j++) {
+                        System.out.print("*");
+                    }
+                    if (numSymbols <= 10) {
+                        System.out.println(" (0-" + posChars[numSymbols - 1] + ").");
+                    }
+                    if (numSymbols > 10) {
+                        System.out.println(" (0-9, a-" + posChars[numSymbols-1] + ").");
+                    }
+                    break;
+                }
+            }
+        }
+        if (codeLength == 0) {
+            System.out.println("Error: Length of secret code can't be 0");
+            System.exit(0);
+        }
+        if (numSymbols < codeLength) {
+            System.out.println("Error: it's not possible to generate a code with a length of " + codeLength + " with " + numSymbols + " unique symbols.");
+            System.exit(0);
+        }
+        if (numSymbols > 36) {
+            System.out.println("Error: maximum number o possible symbols in the code is 36 (0-9,a-z)");
+            System.exit(0);
+        }
+        return sb.toString();
+    }
+
+    public static void checkGuess(String guess, char[] posChar) {
+
+        for (int i = 0; i < guess.length(); i++) {
+            char c = guess.charAt(i);
+            if (posChar.length <= 10) {
+                if (c < 48 || c > 47 + posChar.length) {
+                    System.out.println("Error: " + guess + " is not a valid number");
+                    System.exit(0);
+                }
+            }
+            if (posChar.length > 10) {
+                if (c < 48 || (c > 57 && c < 97) || c > 86 + posChar.length ) {
+                    System.out.println("Error: " + guess + " is not a valid number");
+                    System.exit(0);
+                }
+            }
+        }
+
+    }
+    public static void guessPlay(String pass,char[] posChar) {
+        Scanner scan = new Scanner(System.in);
+
+        int cows = 0;
+        int bulls = 0;
+        int countTurn = 1;
+        boolean play = true;
+        System.out.println("Okay, let's start a game!");
+        while (play) {
+            System.out.println("Turn " + countTurn + ":");
+            String guess = scan.nextLine();
+            checkGuess(guess, posChar);
+            for (int i = 0; i < guess.length(); i++) {
+                if (pass.charAt(i) == guess.charAt(i)) {
+                    bulls++;
+                } else {
+                    for (int j = 0; j < pass.length(); j++) {
+                        if (pass.charAt(j) == guess.charAt(i)) {
+                            cows++;
+                        }
+                    }
+                }
+            }
+            System.out.print("Grade: ");
+            if (cows == 0 && bulls == 0) {
+                System.out.print("None");
+            }
+            if (bulls > 0) {
+                System.out.print(bulls + " bull(s)");
+            }
+            if (bulls > 0 && cows > 0) {
+                System.out.print(" and ");
+            }
+            if (cows > 0) {
+                System.out.print(cows + " cows");
+            }
+            if (bulls == pass.length()) {
+                System.out.print("Congratulations! You guessed the secret code.");
+                play = false;
+            }
+            System.out.println("");
+            countTurn++;
+            cows = 0;
+            bulls = 0;
+        }
+    }
+}
